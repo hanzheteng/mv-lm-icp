@@ -25,7 +25,7 @@ if(MSVC)
 add_definitions(-D_USE_MATH_DEFINES)
 endif()
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+# list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 # MESSAGE("---------------OpenGL-------------------")
 # find_package(OpenGL REQUIRED)
@@ -64,7 +64,7 @@ INCLUDE_DIRECTORIES(${GFLAGS_INCLUDE_DIRS})
 MESSAGE("gflags found ${gflags_FOUND} at ${gflags_INCLUDE_DIR}")
 
 MESSAGE("---------------Ceres-------------------")
-FIND_PACKAGE(Ceres REQUIRED)
+FIND_PACKAGE(Ceres 1.14 REQUIRED)
 INCLUDE_DIRECTORIES(${CERES_INCLUDE_DIRS})
 MESSAGE("ceres found ${Ceres_FOUND} at ${Ceres_DIR}")
 MESSAGE("Ceres_INCLUDE_DIR ${CERES_INCLUDE_DIRS}")
