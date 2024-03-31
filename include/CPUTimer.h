@@ -11,7 +11,7 @@ typedef std::chrono::steady_clock Clock;
 class CPUTimer {
  private:
   Clock::time_point startTime;
-  std::map<std::string,float> timingsMap;
+  std::map<std::string, float> timingsMap;
 
  public:
   void tic();

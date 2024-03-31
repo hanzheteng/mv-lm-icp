@@ -6,9 +6,9 @@
 #include <vector>
 
 namespace ICP_Closedform {
-    Eigen::Isometry3d pointToPlane(std::vector<Eigen::Vector3d> &src,std::vector<Eigen::Vector3d> &dst,std::vector<Eigen::Vector3d> &nor);
-    Eigen::Isometry3d pointToPoint(std::vector<Eigen::Vector3d> &src,std::vector<Eigen::Vector3d> &dst);
-}
+Eigen::Isometry3d pointToPlane(std::vector<Eigen::Vector3d>& src, std::vector<Eigen::Vector3d>& dst,
+                               std::vector<Eigen::Vector3d>& nor);
+Eigen::Isometry3d pointToPoint(std::vector<Eigen::Vector3d>& src, std::vector<Eigen::Vector3d>& dst);
+}  // namespace ICP_Closedform
 
-#endif // ICPCLOSEDFORM_H
-
+#endif  // ICPCLOSEDFORM_H

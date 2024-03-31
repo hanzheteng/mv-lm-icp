@@ -7,13 +7,13 @@
 #include <frame.h>
 
 namespace ICP_G2O {
-    //pairwise
-    Eigen::Isometry3d pointToPlane(std::vector<Eigen::Vector3d> &src,std::vector<Eigen::Vector3d> &dst,std::vector<Eigen::Vector3d> &nor);
-    Eigen::Isometry3d pointToPoint(std::vector<Eigen::Vector3d> &src,std::vector<Eigen::Vector3d> &dst);
+// pairwise
+Eigen::Isometry3d pointToPlane(std::vector<Eigen::Vector3d>& src, std::vector<Eigen::Vector3d>& dst,
+                               std::vector<Eigen::Vector3d>& nor);
+Eigen::Isometry3d pointToPoint(std::vector<Eigen::Vector3d>& src, std::vector<Eigen::Vector3d>& dst);
 
-    //multiview
-    void g2oOptimizer(std::vector< std::shared_ptr<Frame> >& frames, bool pointToPlane);
-}
+// multiview
+void g2oOptimizer(std::vector<std::shared_ptr<Frame> >& frames, bool pointToPlane);
+}  // namespace ICP_G2O
 
-#endif // ICPG2O
-
+#endif  // ICPG2O
