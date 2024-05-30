@@ -58,13 +58,16 @@ INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR})
 SET(EIGEN_INCLUDE_DIR ${EIGEN3_INCLUDE_DIR}) #needed for ceres for old version of cmake/FindEigen scripts
 MESSAGE("Eigen3_INCLUDE_DIR ${EIGEN3_INCLUDE_DIR}")
 
+MESSAGE("---------------PCL-------------------")
+FIND_PACKAGE(PCL REQUIRED)
+
 MESSAGE("---------------Gflags-------------------")
 FIND_PACKAGE(Gflags REQUIRED) # package name capitalization, is it really gflags (for windows) vs. Gflags (for linux)
 INCLUDE_DIRECTORIES(${GFLAGS_INCLUDE_DIRS})
 MESSAGE("gflags found ${gflags_FOUND} at ${gflags_INCLUDE_DIR}")
 
 MESSAGE("---------------Ceres-------------------")
-FIND_PACKAGE(Ceres 1.14 REQUIRED)
+FIND_PACKAGE(Ceres 1.14 REQUIRED) # if not found, do cmake -DCeres_DIR=/usr/lib/cmake/Ceres ..
 INCLUDE_DIRECTORIES(${CERES_INCLUDE_DIRS})
 MESSAGE("ceres found ${Ceres_FOUND} at ${Ceres_DIR}")
 MESSAGE("Ceres_INCLUDE_DIR ${CERES_INCLUDE_DIRS}")
@@ -102,6 +105,9 @@ file(GLOB HEADERS
 )
 
 file(GLOB SOURCES src/internal/*.cpp src/internal/*.c)
+
+ADD_EXECUTABLE(pcl_multiview src/pcl_multiview.cpp ${HEADERS} ${SOURCES})
+TARGET_LINK_LIBRARIES(pcl_multiview glfw ${OPENGL_glu_LIBRARY} ${GLFW_LIBRARIES} ${G2O_LIBRARIES} ${GFLAGS_LIBRARIES} ${CERES_LIBRARIES})
 
 ADD_EXECUTABLE(multiview src/main_multiview.cpp ${HEADERS} ${SOURCES})
 TARGET_LINK_LIBRARIES(multiview glfw ${OPENGL_glu_LIBRARY} ${GLFW_LIBRARIES} ${G2O_LIBRARIES} ${GFLAGS_LIBRARIES} ${CERES_LIBRARIES})

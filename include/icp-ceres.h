@@ -46,6 +46,19 @@ void ceresOptimizer_sophusSE3(vector<std::shared_ptr<Frame> >& frames, bool poin
 
 namespace ICPCostFunctions {
 
+// PointToPointErrorGlobal
+// PointToPlaneErrorGlobal
+// PointToPointErrorGlobal_CeresAngleAxis
+// PointToPlaneErrorGlobal_CeresAngleAxis
+// PointToPointErrorGlobal_SophusSE3
+// PointToPlaneErrorGlobal_SophusSE3
+// PointToPointError_CeresAngleAxis
+// PointToPointError_EigenQuaternion
+// PointToPointError_SophusSE3
+// PointToPlaneError_CeresAngleAxis
+// PointToPlaneError_EigenQuaternion
+// PointToPlaneError_SophusSE3
+
 struct PointToPointErrorGlobal {
   const Eigen::Vector3d p_dst;
   const Eigen::Vector3d p_src;
