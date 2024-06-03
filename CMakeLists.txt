@@ -1,6 +1,6 @@
 # define new project
 PROJECT(mv-lm-icp)
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.0 FATAL_ERROR)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.10.2)
 
 option(WITH_G2O "Compile with G2O support if found" ON)
 
@@ -8,6 +8,10 @@ option(WITH_G2O "Compile with G2O support if found" ON)
 function(ECHO var)
 MESSAGE(${var} ": " ${${var}})
 endfunction(ECHO)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 #set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_DEBUG} -Wall") # -DCMAKE_BUILD_TYPE=Debug
 #set(CMAKE_BUILD_TYPE "Release")
@@ -17,9 +21,9 @@ set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options a
 #to debug add this when runniing CMAKE: -DCMAKE_BUILD_TYPE=Debug
 #set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
 
-if(UNIX)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-endif(UNIX)
+# if(UNIX)
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+# endif(UNIX)
 
 if(MSVC)
 add_definitions(-D_USE_MATH_DEFINES)
@@ -60,6 +64,9 @@ MESSAGE("Eigen3_INCLUDE_DIR ${EIGEN3_INCLUDE_DIR}")
 
 MESSAGE("---------------PCL-------------------")
 FIND_PACKAGE(PCL REQUIRED)
+
+MESSAGE("---------------YAML_CPP-------------------")
+FIND_PACKAGE(yaml-cpp REQUIRED)
 
 MESSAGE("---------------Gflags-------------------")
 FIND_PACKAGE(Gflags REQUIRED) # package name capitalization, is it really gflags (for windows) vs. Gflags (for linux)
@@ -107,7 +114,7 @@ file(GLOB HEADERS
 file(GLOB SOURCES src/internal/*.cpp src/internal/*.c)
 
 ADD_EXECUTABLE(pcl_multiview src/pcl_multiview.cpp ${HEADERS} ${SOURCES})
-TARGET_LINK_LIBRARIES(pcl_multiview glfw ${OPENGL_glu_LIBRARY} ${GLFW_LIBRARIES} ${G2O_LIBRARIES} ${GFLAGS_LIBRARIES} ${CERES_LIBRARIES})
+TARGET_LINK_LIBRARIES(pcl_multiview glfw ${OPENGL_glu_LIBRARY} ${GLFW_LIBRARIES} ${G2O_LIBRARIES} ${GFLAGS_LIBRARIES} ${CERES_LIBRARIES} ${PCL_LIBRARIES} ${YAML_CPP_LIBRARIES})
 
 ADD_EXECUTABLE(multiview src/main_multiview.cpp ${HEADERS} ${SOURCES})
 TARGET_LINK_LIBRARIES(multiview glfw ${OPENGL_glu_LIBRARY} ${GLFW_LIBRARIES} ${G2O_LIBRARIES} ${GFLAGS_LIBRARIES} ${CERES_LIBRARIES})

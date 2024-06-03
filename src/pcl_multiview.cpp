@@ -15,6 +15,9 @@
  * - knn number of clostest frames
  */
 
+#include <yaml-cpp/yaml.h>
+#include "my_utils.h"
+
 #include "Visualize.h"
 #include "common.h"
 #include "gflags/gflags.h"
@@ -36,7 +39,7 @@ DEFINE_double(cutoff, 0.05, "dmax/cutoff distance after which we prune correspon
 DEFINE_int32(knn, 2, "number of knn nearest neigbhours to build up the graph");
 
 // DEFINE_string(dir,"../samples/dinosaur","dir");
-DEFINE_string(dir, "../samples/Bunny_RealData", "dir");
+DEFINE_string(file_config, "../config/params.yaml", "file_config");
 
 DEFINE_double(sigma, 0.02, "rotation noise variance");
 DEFINE_double(sigmat, 0.01, "translation noise variance");
@@ -51,7 +54,7 @@ DEFINE_bool(robust, true,
             "robust loss function. Currently uses the SoftL1Loss with scaling parameter set to 1.5*median of point "
             "correspondance distances");
 
-static void loadFrames(vector<std::shared_ptr<Frame> >& frames, std::string dir, bool demean) {
+static void loadFrames(vector<std::shared_ptr<Frame> >& frames, std::string dir) {
   vector<string> clouds = getAllTextFilesFromFolder(dir, "cloud");
   vector<string> poses = getAllTextFilesFromFolder(dir, "pose");
   vector<string> groundtruth = getAllTextFilesFromFolder(dir, "groundtruth");
@@ -81,16 +84,6 @@ static void loadFrames(vector<std::shared_ptr<Frame> >& frames, std::string dir,
         f->pose = addNoise(f->poseGroundTruth, FLAGS_sigma, FLAGS_sigmat);
       }
     }
-
-    //        if(demean){
-    //            if(i==0){
-    //                Matrix3Xd m = vec2mat(f->pts);
-    //                centroid = m.rowwise().mean();
-    //                centroid -= f->pose.translation();
-    //            }
-    //            Matrix3Xd centered = m.colwise() - centroid;
-    //            f->pts = mat2vec(centered);
-    //        }
 
     frames.push_back(f);
   }
@@ -127,19 +120,87 @@ static void computeClosestPoints(vector<std::shared_ptr<Frame> >& frames, float 
 int main(int argc, char* argv[]) {
   google::ParseCommandLineFlags(&argc, &argv, true);
 
+  // load parameters from config file
+  YAML::Node params = YAML::LoadFile(FLAGS_file_config);
+  float voxel_size = params["voxel_size"].as<float>();
+  std::string cloud_folder(params["dir_clouds"].as<std::string>());
+  std::string pose_config(params["pose_config"].as<std::string>());
+  std::string results_folder(params["results_folder"].as<std::string>());
+  std::filesystem::create_directory(results_folder);
+
+  // iterate through data folder, save and sort filenames
+  std::vector<std::string> scan_names;
+  for (auto& entry : std::filesystem::directory_iterator(cloud_folder)) {
+    if (entry.path().extension() != ".ply" && entry.path().extension() != ".pcd") continue;
+    scan_names.push_back(entry.path().filename().stem().string());
+  }
+  std::sort(scan_names.begin(), scan_names.end());
+
+  // load scan clouds and their initial poses
+  std::vector<PointCloudTPtr> clouds;
+  std::vector<Eigen::Affine3d> poses;
+  YAML::Node cloud_poses = YAML::LoadFile(pose_config);
+  std::cout << "Loading BLK scans from " << cloud_folder << std::endl;
+  for (int i = 0; i < scan_names.size(); i++) {
+    std::cout << "Loading BLK scan " << scan_names[i] << std::endl;
+    std::string scan_path = cloud_folder + "/" + scan_names[i];
+    PointCloudTPtr cloud(new PointCloudT);
+    if (!LoadCloudFromFile(scan_path, cloud)) continue;
+    // load the initial transformation from the YAML file
+    YAML::Node tf = cloud_poses[scan_names[i]];
+    Eigen::Affine3d pose = ParseTransformation(tf);
+    // pcl::transformPointCloud(*cloud, *cloud, pose.matrix());
+    clouds.push_back(cloud);
+    poses.push_back(pose);
+    std::cout << "Loaded " << cloud->size() << " points" << std::endl;
+  }
+  if (clouds.size() != scan_names.size()) {
+    std::cout << "Failed to load all clouds, please check input folder" << std::endl;
+    return -1;
+  }
+
+  // downsample the point clouds
+  std::cout << "Downsampling point clouds..." << std::endl;
+  for (auto& cloud : clouds) {
+    DownsamplePointCloud(cloud, cloud, voxel_size);
+    std::cout << "Downsampled to " << cloud->size() << " points" << std::endl;
+  }
+
+  // estimate normals for each point cloud
+  std::cout << "Estimating normals for point clouds..." << std::endl;
+  for (int i = 0; i < clouds.size(); i++) {
+    std::cout << "Estimating normals for " << scan_names[i] << std::endl;
+    EstimatePointNormals(clouds[i], Eigen::Affine3d::Identity());
+  }
+
+  // colorize the point clouds
+  std::cout << "Colorizing point clouds..." << std::endl;
+  for (int i = 0; i < clouds.size(); i++) {
+    std::cout << "Colorizing " << scan_names[i] << std::endl;
+    ColorizePointCloud(clouds[i], i);
+    // ColorizePointCloudByNormals(clouds[i]);
+  }
+
   vector<std::shared_ptr<Frame> > frames;
 
   CPUTimer timer = CPUTimer();
 
-  loadFrames(frames, FLAGS_dir, true);
+  // adapt to the new data structure
+  for (int i = 0; i < clouds.size(); i++) {
+    shared_ptr<Frame> f(new Frame());
+    for (int j = 0; j < clouds[i]->size(); j++) {
+      f->pts.push_back(clouds[i]->points[j].getVector3fMap().cast<double>());
+      f->nor.push_back(clouds[i]->points[j].getNormalVector3fMap().cast<double>());
+    }
+    f->pose = Eigen::Isometry3d(poses[i].matrix());
+    f->poseGroundTruth = Eigen::Isometry3d(poses[i].matrix());
+    frames.push_back(f);
+  }
 
-  Visualize::setClouds(&frames);
+  // loadFrames(frames, cloud_folder);
 
   frames[0]->fixed = true;
   ApproachComponents::computePoseNeighbours(frames, FLAGS_knn);
-
-  cout << "press q to start optimization" << endl;
-  Visualize::spin();
 
   for (int i = 0; i < 20; i++) {
     timer.tic();
@@ -160,9 +221,27 @@ int main(int argc, char* argv[]) {
 
     timer.toc(std::string("global ") + std::to_string(i));
     cout << "round: " << i << endl;
-    Visualize::spinToggle(2);
   }
 
-  cout << "Q (capital q) to quit" << endl;
-  Visualize::spinLast();
+  // Save optimized poses to the given path
+  std::string output_init_poses = results_folder + "/mvicp_init_poses.yaml";
+  std::stringstream stream;
+  for (int i = 0; i < clouds.size(); ++i) {
+    stream << scan_names[i] << ": [" << std::endl;
+    stream << Matrix4dToString(poses[i].matrix()) << std::endl;
+    stream << "]" << std::endl << std::endl;
+  }
+  SaveDataStreamToFile(stream, output_init_poses);
+
+  std::string output_opt_poses = results_folder + "/mvicp_optimized_poses.yaml";
+  stream.str("");
+  for (int i = 0; i < clouds.size(); ++i) {
+    stream << scan_names[i] << ": [" << std::endl;
+    stream << Matrix4dToString(frames[i]->pose.matrix()) << std::endl;
+    stream << "]" << std::endl << std::endl;
+  }
+  SaveDataStreamToFile(stream, output_opt_poses);
+  std::cout << "Optimization completed" << std::endl;
+
+  return 0;
 }
