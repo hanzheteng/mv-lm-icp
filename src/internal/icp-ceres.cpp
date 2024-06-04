@@ -244,6 +244,12 @@ void ceresOptimizer(vector<std::shared_ptr<Frame> >& frames, bool pointToPlane, 
 
   cout << "ok ceres" << endl;
 
+  // add ceres parameter block
+  for (int i = 0; i < frames.size(); i++) {
+    problem.AddParameterBlock(qs[i].coeffs().data(), 4);
+    problem.AddParameterBlock(ts[i].data(), 3);
+  }
+
   //    Visualize::spin(1);
 
   // add edges
@@ -343,6 +349,11 @@ void ceresOptimizer_ceresAngleAxis(vector<std::shared_ptr<Frame> >& frames, bool
     }
   }
 
+  // add ceres parameter block
+  for (int i = 0; i < frames.size(); i++) {
+    problem.AddParameterBlock(&cameras[i * 6], 6);
+  }
+
   // add edges
   for (int src_id = 0; src_id < frames.size(); src_id++) {
     Frame& srcCloud = *frames[src_id];
@@ -412,6 +423,11 @@ void ceresOptimizer_sophusSE3(vector<std::shared_ptr<Frame> >& frames, bool poin
     if (i == 0) {
       frames[i]->fixed = true;
     }
+  }
+
+  // add ceres parameter block
+  for (int i = 0; i < frames.size(); i++) {
+    problem.AddParameterBlock(cameras[i].data(), Sophus::SE3d::num_parameters);
   }
 
   // add edges

@@ -31,7 +31,7 @@ class Frame {
  public:
   Frame();
   //    Frame(const std::string filename);
-  ~Frame();
+  // ~Frame();
 
   vector<Vector3d> pts;
   vector<Vector3d> nor;

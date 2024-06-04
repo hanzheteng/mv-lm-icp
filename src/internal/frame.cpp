@@ -6,11 +6,11 @@ Frame::Frame() : uploaded(false), fixed(false), indexComputed(false) {
   //    recomputeNormals();
 }
 
-Frame::~Frame() {
-  //    delete[] pts;
-  cout << "delete frame: " << triangleVBO << endl;
-  glDeleteBuffers(1, &triangleVBO);
-}
+// Frame::~Frame() {
+//    delete[] pts;
+// cout << "delete frame: " << triangleVBO << endl;
+// glDeleteBuffers(1, &triangleVBO);
+// }
 
 void Frame::upload() {
   // http://www.songho.ca/opengl/gl_vbo.html
