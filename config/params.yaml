@@ -1,6 +1,0 @@
-
-dir_clouds: /home/hteng/Datasets/terrestrial_lamp/BLK360/raw_scans/
-pose_config: /home/hteng/Datasets/terrestrial_lamp/BLK360/init_poses.yaml
-results_folder: /home/hteng/Datasets/terrestrial_lamp/BLK360/results/
-
-voxel_size: 0.1

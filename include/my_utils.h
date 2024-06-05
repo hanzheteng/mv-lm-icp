@@ -143,3 +143,22 @@ void SaveDataStreamToFile(const std::stringstream& stream, const std::string& pa
   file.close();
   std::cout << "Data stream saved to: " << path << std::endl;
 }
+
+Eigen::Affine3d GetRandomTransformation(double trans_nosie, double rot_noise) {
+  // Prepare random seeds
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_real_distribution<> dis_trans(-trans_nosie, trans_nosie);
+  std::uniform_real_distribution<> dis_rot(-rot_noise, rot_noise);  // degrees
+
+  // Generate random translation and rotation
+  double translation_x = dis_trans(gen);
+  double translation_y = dis_trans(gen);
+  double rotation_z = dis_rot(gen) * M_PI / 180.0;  // radians
+
+  // Create transformation matrix
+  Eigen::Affine3d transform = Eigen::Affine3d::Identity();
+  transform.translation() << translation_x, translation_y, 0.0;
+  transform.rotate(Eigen::AngleAxisd(rotation_z, Eigen::Vector3d::UnitZ()));
+  return transform;
+}
