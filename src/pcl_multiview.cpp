@@ -31,7 +31,7 @@ using namespace std;
 DEFINE_bool(pointToPlane, true, "use point to plane distance metric");
 DEFINE_bool(sophusSE3, true, "");
 DEFINE_bool(angleAxis, false, "");
-DEFINE_double(cutoff, 0.1, "dmax/cutoff distance after which we prune correspondences");
+DEFINE_double(cutoff, 0.5, "dmax/cutoff distance after which we prune correspondences");
 DEFINE_int32(knn, 2, "number of knn nearest neigbhours to build up the graph");
 DEFINE_bool(robust, true,
             "robust loss function. Currently uses the SoftL1Loss with scaling parameter set to 1.5*median of point "
@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
 
   // Save optimized poses to the given path
   std::filesystem::create_directory(FLAGS_dir_results);
-  std::string output_init_poses = FLAGS_dir_results + "/mvicp_init_poses.yaml";
+  std::string output_init_poses = FLAGS_dir_results + "/init_poses_mvicp.yaml";
   std::stringstream stream;
   for (int i = 0; i < clouds.size(); ++i) {
     stream << scan_names[i] << ": [" << std::endl;
@@ -182,7 +182,7 @@ int main(int argc, char* argv[]) {
   }
   SaveDataStreamToFile(stream, output_init_poses);
 
-  std::string output_opt_poses = FLAGS_dir_results + "/mvicp_optimized_poses.yaml";
+  std::string output_opt_poses = FLAGS_dir_results + "/optimized_poses_mvicp.yaml";
   stream.str("");
   for (int i = 0; i < clouds.size(); ++i) {
     stream << scan_names[i] << ": [" << std::endl;
